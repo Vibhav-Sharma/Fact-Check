@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FactMesh — Cross-Document Fact Knowledge Layer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>FactMesh</h1>
+          <span class="badge-tag">Knowledge Layer v1.0</span>
+        </div>
+      </div>
+
+      <!-- Presets & Actions -->
+      <div class="quick-presets">
+        <span class="preset-label">Quick Load Starter Data:</span>
+        <button id="btnLoadDelhivery" class="btn btn-secondary">
+          📦 Delhivery Logistics
+        </button>
+        <button id="btnLoadMacro" class="btn btn-secondary">
+          📊 India Macroeconomy
+        </button>
+        <button id="btnReset" class="btn btn-danger-outline" title="Clear all stored data">
+          🗑️ Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Top Stats Row -->
+    <section class="stats-row">
+      <div class="stat-card">
+        <span class="stat-title">Source Documents</span>
+        <span class="stat-value" id="statDocs">0</span>
+        <span class="stat-desc">Parsed & Indexed</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-title">Grounded Facts</span>
+        <span class="stat-value" id="statFacts">0</span>
+        <span class="stat-desc">Verbatim Verified</span>
+      </div>
+      <div class="stat-card stat-card-green">
+        <span class="stat-title">Corroborated</span>
+        <span class="stat-value" id="statCorrob">0</span>
+        <span class="stat-desc">Cross-Doc Consensus</span>
+      </div>
+      <div class="stat-card stat-card-red">
+        <span class="stat-title">Contradictions</span>
+        <span class="stat-value" id="statContra">0</span>
+        <span class="stat-desc">Irreconcilable Conflicts</span>
+      </div>
+      <div class="stat-card stat-card-amber">
+        <span class="stat-title">Contextually Reconciled</span>
+        <span class="stat-value" id="statReconciled">0</span>
+        <span class="stat-desc">Resolved by Time/Scope/Unit</span>
+      </div>
+      <div class="stat-card stat-card-purple">
+        <span class="stat-title">Failures & Uncertainty</span>
+        <span class="stat-value" id="statFailures">0</span>
+        <span class="stat-desc">Telemetry Diagnostic</span>
+      </div>
+    </section>
+
+    <!-- Upload & Process Section -->
+    <section class="upload-section card">
+      <div class="upload-inner">
+        <div class="upload-text">
+          <h3>Ingest Custom PDF Documents</h3>
+          <p>Upload one or more PDFs (Annual Reports, Prospectuses, Research Surveys) to extract facts and verify cross-document relationships dynamically.</p>
+        </div>
+        <div class="upload-controls">
+          <input type="file" id="pdfFileInput" accept="application/pdf" multiple style="display: none;">
+          <button id="btnSelectFiles" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            Choose PDF Files
+          </button>
+          <button id="btnUpload" class="btn btn-accent" style="display: none;">
+            Start Processing Pipeline
+          </button>
+          <span id="uploadStatus" class="status-indicator"></span>
+        </div>
+      </div>
+      <div id="fileSelectionList" class="file-list"></div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="tab-corroborated">
+        <span class="dot dot-green"></span> 1. Corroborated Claims
+      </button>
+      <button class="tab-btn" data-tab="tab-contradictions">
+        <span class="dot dot-red"></span> 2. Genuine Contradictions
+      </button>
+      <button class="tab-btn" data-tab="tab-reconciled">
+        <span class="dot dot-amber"></span> 3. Contextually Reconciled
+      </button>
+      <button class="tab-btn" data-tab="tab-failures">
+        <span class="dot dot-purple"></span> 4. Failures & Uncertainty
+      </button>
+      <button class="tab-btn" data-tab="tab-all-facts">
+        <span class="dot dot-blue"></span> 5. Knowledge Store (All Facts)
+      </button>
+      <button class="tab-btn" data-tab="tab-documents">
+        <span class="dot dot-gray"></span> 6. Indexed Documents
+      </button>
+    </nav>
+
+    <!-- Tab Content Area -->
+    <section class="tab-content-area">
+      <!-- Tab 1: Corroborated -->
+      <div id="tab-corroborated" class="tab-pane active">
+        <div class="pane-header">
+          <h2>Corroborated Facts Across Documents</h2>
+          <p>Claims where multiple independent sources state matching underlying facts, even when using differing terminology or metric expressions.</p>
+        </div>
+        <div id="corroboratedContainer" class="relationships-grid"></div>
+      </div>
+
+      <!-- Tab 2: Contradictions -->
+      <div id="tab-contradictions" class="tab-pane">
+        <div class="pane-header">
+          <h2>Genuine or Likely Contradictions</h2>
+          <p>Conflicting claims regarding the exact same subject, metric, and scope where no contextual dimension accounts for the discrepancy.</p>
+        </div>
+        <div id="contradictionContainer" class="relationships-grid"></div>
+      </div>
+
+      <!-- Tab 3: Contextually Reconciled -->
+      <div id="tab-reconciled" class="tab-pane">
+        <div class="pane-header">
+          <h2>Apparent Contradictions Reconciled by Context</h2>
+          <p>Pairs of claims that seem contradictory at surface level, but are logically compatible once normalized across Time, Scope, Units, or Accounting Standards.</p>
+        </div>
+        <div id="reconciledContainer" class="relationships-grid"></div>
+      </div>
+
+      <!-- Tab 4: Failures & Uncertainty -->
+      <div id="tab-failures" class="tab-pane">
+        <div class="pane-header">
+          <h2>Transparent Failure & Reasoning Telemetry (Requirement 4)</h2>
+          <p>Auditable log of extraction, grounding, and reasoning anomalies showing what went wrong, confidence scores, and mitigation handling.</p>
+        </div>
+        <div id="failuresContainer" class="failures-grid"></div>
+      </div>
+
+      <!-- Tab 5: All Facts -->
+      <div id="tab-all-facts" class="tab-pane">
+        <div class="pane-header flex-between">
+          <div>
+            <h2>Verified Knowledge Store</h2>
+            <p>Every individual fact strictly grounded to its source document, page number, and verbatim snippet.</p>
+          </div>
+          <div class="search-box">
+            <input type="text" id="factSearchInput" placeholder="Filter by subject, metric, value...">
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="factsTable">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Predicate (Metric)</th>
+                <th>Extracted Value</th>
+                <th>Time Period</th>
+                <th>Scope</th>
+                <th>Source Document</th>
+                <th>Page</th>
+                <th>Grounding</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="factsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 6: Documents -->
+      <div id="tab-documents" class="tab-pane">
+        <div class="pane-header">
+          <h2>Registered Documents</h2>
+          <p>Overview of all PDFs parsed into the Knowledge Layer.</p>
+        </div>
+        <div id="documentsList" class="documents-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Evidence Inspector Modal -->
+  <div id="evidenceModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Evidence Grounding Inspector</h3>
+        <button id="btnCloseModal" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
