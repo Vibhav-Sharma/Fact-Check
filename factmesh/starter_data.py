@@ -196,7 +196,7 @@ def get_delhivery_starter_facts() -> List[Fact]:
             dynamic_attributes={"share_of_service_revenue": "62%"}
         ),
 
-        # Fact 7: Express Parcel Shipments Since Inception (Presentation P6: 2.8 Bn+) - Apparent Contradiction
+        # Fact 7: Express Parcel Shipments Since Inception (Presentation P6: 2.8 Bn+) - Contextually Reconciled
         Fact(
             fact_id="fact_del_pres_04",
             document_id="doc_delhivery_pres",
@@ -208,7 +208,7 @@ def get_delhivery_starter_facts() -> List[Fact]:
             normalized_value=2800000000.0,
             unit="shipments",
             time_period=TimePeriod(
-                raw="As of FY24 Inception",
+                raw="FY24",
                 normalized_year=2024,
                 period_type="cumulative"
             ),
@@ -221,11 +221,11 @@ def get_delhivery_starter_facts() -> List[Fact]:
                 verified=True,
                 verification_score=1.0
             ),
-            confidence=0.95,
-            dynamic_attributes={"milestone": "Cumulative"}
+            confidence=0.98,
+            dynamic_attributes={"milestone": "Cumulative", "vintage": "FY24"}
         ),
 
-        # Fact 8: Cumulative Shipments Since Inception in Prospectus 2022 (1.0 Bn) - Contradiction if compared without vintage, or Genuine Contradiction claim
+        # Fact 8: Cumulative Shipments Since Inception in Prospectus 2022 (1.0 Bn) - Contextually Reconciled with Fact 7
         Fact(
             fact_id="fact_del_prosp_01",
             document_id="doc_delhivery_prosp",
@@ -233,25 +233,87 @@ def get_delhivery_starter_facts() -> List[Fact]:
             page_number=74,
             subject="Delhivery",
             predicate="Express Parcel Cumulative Shipments Since Inception",
-            raw_value="1.0 billion",
+            raw_value="1 billion",
             normalized_value=1000000000.0,
             unit="shipments",
             time_period=TimePeriod(
-                raw="Cumulative Since Inception (Disclosed as static milestone)",
-                normalized_year=2024,  # If extracted without vintage qualifier
+                raw="2021",
+                normalized_year=2021,
                 period_type="cumulative"
             ),
             scope=Scope(geography="India", segment="Express Parcel Cumulative", reporting_type="Operational"),
             evidence=Evidence(
                 verbatim_quote="1 billion express parcel shipments delivered since incorporation",
                 page_number=74,
-                char_start=310,
-                char_end=374,
+                char_start=2133,
+                char_end=2197,
                 verified=True,
-                verification_score=0.98
+                verification_score=1.0
             ),
-            confidence=0.91,
-            dynamic_attributes={"vintage": "2022 filing"}
+            confidence=0.98,
+            dynamic_attributes={"milestone": "Cumulative", "vintage": "2021 milestone"}
+        ),
+
+        # Demo Fixture: Controlled Contradiction (Demonstration Case B)
+        # Clearly labelled synthetic fixture exercising genuine contradiction detection
+        # with identical subject, metric, time period, and scope, but conflicting values.
+        Fact(
+            fact_id="fact_del_contra_fixture_a",
+            document_id="doc_fixture_delhivery_a",
+            source_document="[Demo Fixture: Controlled Contradiction] Delhivery Logistics Operations - Internal Audit FY24",
+            page_number=14,
+            subject="Delhivery [Controlled Contradiction Fixture]",
+            predicate="Express Parcel Shipments Volume",
+            raw_value="740 million",
+            normalized_value=740000000.0,
+            unit="shipments",
+            time_period=TimePeriod(
+                raw="FY2024",
+                normalized_year=2024,
+                period_type="fiscal_year",
+                normalized_start="2023-04-01",
+                normalized_end="2024-03-31"
+            ),
+            scope=Scope(geography="Global", segment="Total Operations", reporting_type="Operational"),
+            evidence=Evidence(
+                verbatim_quote="[Controlled Test Fixture] Verified operational express parcel shipments: 740 million in FY2024.",
+                page_number=14,
+                char_start=0,
+                char_end=102,
+                verified=True,
+                verification_score=1.0
+            ),
+            confidence=0.99,
+            dynamic_attributes={"fixture": True, "note": "Controlled test fixture demonstrating contradiction detection"}
+        ),
+        Fact(
+            fact_id="fact_del_contra_fixture_b",
+            document_id="doc_fixture_delhivery_b",
+            source_document="[Demo Fixture: Controlled Contradiction] Delhivery Logistics Operations - Third-Party Review FY24",
+            page_number=8,
+            subject="Delhivery [Controlled Contradiction Fixture]",
+            predicate="Express Parcel Shipments Volume",
+            raw_value="810 million",
+            normalized_value=810000000.0,
+            unit="shipments",
+            time_period=TimePeriod(
+                raw="FY2024",
+                normalized_year=2024,
+                period_type="fiscal_year",
+                normalized_start="2023-04-01",
+                normalized_end="2024-03-31"
+            ),
+            scope=Scope(geography="Global", segment="Total Operations", reporting_type="Operational"),
+            evidence=Evidence(
+                verbatim_quote="[Controlled Test Fixture] Reassessed operational express parcel shipments: 810 million in FY2024.",
+                page_number=8,
+                char_start=0,
+                char_end=104,
+                verified=True,
+                verification_score=1.0
+            ),
+            confidence=0.99,
+            dynamic_attributes={"fixture": True, "note": "Controlled test fixture demonstrating contradiction detection"}
         )
     ]
 

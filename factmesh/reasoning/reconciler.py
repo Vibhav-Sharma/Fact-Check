@@ -43,7 +43,69 @@ class FactReconciler:
             )
 
         # 2. Check for Contextual Reconciliation: Numbers differ, but explained by context dimensions
-        # Dimension A: Different Time Periods
+        # Dimension A1: Cumulative Metrics with Different Temporal / Data Vintage Context
+        if not comp["numbers_match"] and comp.get("is_cumulative") and comp.get("temporal_context_different"):
+            year_a = comp.get("year_a")
+            year_b = comp.get("year_b")
+            val_a = comp.get("val_a")
+            val_b = comp.get("val_b")
+
+            # Clean metric name for display
+            pred_lower = fact_a.predicate.lower()
+            if "express parcel" in pred_lower:
+                metric_name = "express parcel shipments"
+            elif "shipment" in pred_lower:
+                metric_name = "shipments"
+            elif "cumulative" in pred_lower:
+                metric_name = pred_lower.replace("cumulative", "").strip()
+            else:
+                metric_name = pred_lower
+
+            # Determine temporal ordering
+            if year_a is not None and year_b is not None and year_a < year_b:
+                earlier_fact, later_fact = fact_a, fact_b
+                earlier_time, later_time = comp["time_a"], comp["time_b"]
+            elif year_a is not None and year_b is not None and year_b < year_a:
+                earlier_fact, later_fact = fact_b, fact_a
+                earlier_time, later_time = comp["time_b"], comp["time_a"]
+            else:
+                if val_a is not None and val_b is not None and val_a <= val_b:
+                    earlier_fact, later_fact = fact_a, fact_b
+                    earlier_time, later_time = comp["time_a"], comp["time_b"]
+                else:
+                    earlier_fact, later_fact = fact_b, fact_a
+                    earlier_time, later_time = comp["time_b"], comp["time_a"]
+
+            earlier_disp = earlier_fact.raw_value
+            later_raw = later_fact.raw_value
+            if "bn" in later_raw.lower():
+                clean_num = later_raw.lower().replace("bn+", "").replace("bn", "").strip()
+                later_disp = f">{clean_num} billion" if ("+" in later_raw or ">" in later_raw) else f"{clean_num} billion"
+            elif later_raw.endswith("+"):
+                later_disp = f">{later_raw.rstrip('+').strip()}"
+            else:
+                later_disp = later_raw
+
+            reason = (
+                f"The claims report cumulative {metric_name} at different points in time. "
+                f"The {earlier_disp} figure is associated with {earlier_time}, "
+                f"while the {later_disp} figure is reported for {later_time}. "
+                f"The increase is therefore temporally consistent rather than contradictory."
+            )
+            return FactRelationship(
+                relationship_id=rel_id,
+                fact_a_id=fact_a.fact_id,
+                fact_b_id=fact_b.fact_id,
+                relationship=RelationshipType.CONTEXTUALLY_RECONCILED,
+                reconciling_dimension=ReconcilingDimension.TIME_PERIOD_OR_DATA_VINTAGE,
+                reason=reason,
+                dimension_details=comp,
+                confidence=0.95,
+                fact_a=fact_a,
+                fact_b=fact_b
+            )
+
+        # Dimension A2: Different Time Periods
         if not comp["numbers_match"] and comp["time_different"]:
             reason = (
                 f"Apparent discrepancy between '{fact_a.raw_value}' and '{fact_b.raw_value}' is fully reconciled by "

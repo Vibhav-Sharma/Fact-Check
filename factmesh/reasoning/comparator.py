@@ -61,6 +61,21 @@ class MultiDimensionalComparator:
             numbers_match = True
             relative_diff = 0.0
 
+        # 5. Cumulative metric & Vintage Context
+        cum_keywords = ("cumulative", "since inception", "since incorporation", "delivered since", "to date", "total delivered")
+        text_a = f"{fact_a.predicate} {fact_a.time_period.raw} {fact_a.dynamic_attributes.get('milestone', '')}".lower()
+        text_b = f"{fact_b.predicate} {fact_b.time_period.raw} {fact_b.dynamic_attributes.get('milestone', '')}".lower()
+        is_cumulative_a = (fact_a.time_period.period_type == "cumulative") or any(kw in text_a for kw in cum_keywords)
+        is_cumulative_b = (fact_b.time_period.period_type == "cumulative") or any(kw in text_b for kw in cum_keywords)
+        is_cumulative = is_cumulative_a and is_cumulative_b
+
+        vintage_a = str(fact_a.dynamic_attributes.get("vintage", "")).lower().strip()
+        vintage_b = str(fact_b.dynamic_attributes.get("vintage", "")).lower().strip()
+        vintage_different = bool(vintage_a and vintage_b and vintage_a != vintage_b)
+        temporal_context_different = time_different or vintage_different or (
+            time_missing and fact_a.time_period.raw.strip().lower() != fact_b.time_period.raw.strip().lower()
+        )
+
         return {
             "same_subject": same_subject,
             "time_identical": time_identical,
@@ -78,6 +93,13 @@ class MultiDimensionalComparator:
             "unit_b": fact_b.unit,
             "time_a": fact_a.time_period.raw,
             "time_b": fact_b.time_period.raw,
+            "year_a": time_a,
+            "year_b": time_b,
             "scope_a": fact_a.scope.segment,
-            "scope_b": fact_b.scope.segment
+            "scope_b": fact_b.scope.segment,
+            "is_cumulative": is_cumulative,
+            "is_cumulative_a": is_cumulative_a,
+            "is_cumulative_b": is_cumulative_b,
+            "vintage_different": vintage_different,
+            "temporal_context_different": temporal_context_different
         }
