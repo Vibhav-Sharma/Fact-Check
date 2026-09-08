@@ -56,8 +56,7 @@ FactMesh is designed to generalize to arbitrary documents:
 
 ## 2. Video Demo Link (≤3 minutes)
 
-- **Video Walkthrough (≤ 3 minutes):** [Watch FactMesh Demo Video](https://youtu.be/placeholder-demo-link) *(Note: Replace with your final recording URL prior to submission)*
-
+- **Video Walkthrough (≤ 3 minutes):** (https://drive.google.com/file/d/199zPjQEzjeuBLMJrEUiFlf7wzulzLKmJ/view?usp=sharing)
 ---
 
 ## 3. Approach
